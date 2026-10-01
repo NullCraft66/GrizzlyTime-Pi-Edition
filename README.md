@@ -1,51 +1,146 @@
-# GrizzlyTime
+# GrizzlyTime PI Edition
 
-![Codacy Badge](https://app.codacy.com/project/badge/Grade/526a7badc871467ba68c0d688e87b3c7)
-![Current Version Badge](https://img.shields.io/github/release/ycsrobotics/GrizzlyTime.svg?style=flat)
-![Num Downloads](https://img.shields.io/github/downloads/ycsrobotics/GrizzlyTime/latest/total.svg?style=flat)
-![License](https://img.shields.io/github/license/ycsrobotics/GrizzlyTime.svg?style=flat)
-![Appveyor](https://ci.appveyor.com/api/projects/status/ph074gnnuymhxssw?svg=true)
+GrizzlyTime PI Edition is a Raspberry Pi deployment of the GrizzlyTime JavaFX time-logging application. It records student and mentor attendance in Google Sheets and supports USB barcode scanners.
 
-![example image](https://raw.githubusercontent.com/YCSRobotics/GrizzlyTime/master/wiki_images/main_screen.png)
+This edition targets a Raspberry Pi 4 or 5 running Raspberry Pi OS 64-bit with Desktop. It does not require GPIO hardware: the scanner acts as a USB keyboard and the application communicates with Google Sheets over the network.
 
-GrizzlyTime is a Java based time logging system that links with Google Sheets. It features fast setup (<5minutes), logging of individual student dates, quick student registration, flexible 6 digit ID system, etc.
+## What changed from upstream
 
-## Notice
-Google Sheets has a maximum column limit of 256 columns. The Date Log WILL break once this limit has been reached!
-I'm currently working on a workaround or an alternative means of storing this data. Stay up-to-date!
+- Added the administrative `0000000` code to log out all currently logged-in users.
+- Added Raspberry Pi installation, display, autostart, troubleshooting, and maintenance guidance.
+- Kept the original Google Sheets workflow and JavaFX interface.
 
-## Features
-- Individual logging of days signed in
-- Tracking of student/mentor total hours
-- Easy 1 minute registration for new users
-- Compatible with USB Barcode Scanners
-- Graphics and Application name are customizable without code
-- Easily extendable
+See [CHANGELOG.md](CHANGELOG.md) for the full change history.
 
-## Example uses of data
-- Record student/mentor participation
-- Gather statistics of student growth over time
+## Requirements
 
-## Downloads
-Currently supported OSes: Windows, Linux
-Unsupported OSes: Mac
-Note: I would love to support Mac. Unfortunately, I do not own a Mac machine to test GrizzlyTime on. It may
-or may not work.
+- Raspberry Pi 4 or 5 recommended
+- Raspberry Pi OS 64-bit with Desktop
+- Internet connection
+- Java 11 or Java 17 runtime/development kit
+- USB barcode scanner configured to send Enter after each scan
+- Google account and Google Sheets API credentials
+- Monitor, keyboard, and mouse for initial setup
 
-Download the latest **release** [here](https://github.com/YCSRobotics/GrizzlyTime/releases/latest "here").
+This is not a headless service. A graphical desktop session is required because the application uses JavaFX.
 
-A setup tutorial can be found [here.](https://www.youtube.com/watch?v=GhDeMjEh9ao "here.")
-Or see the [wiki](https://github.com/YCSRobotics/GrizzlyTime/wiki "wiki")
+## Install on Raspberry Pi
 
-## Customizing/Building Source Code
-Visit the [wiki](https://github.com/YCSRobotics/GrizzlyTime/wiki "wiki") for information on custom images or code.
+### 1. Update the operating system
 
-## Credits
-GrizzlyTime is licensed under MIT and uses the following open source software with their respective licenses.
-```
-Google Java API Client 1.23.0
-Commons-IO 2.6
-Org.Json
+```bash
+sudo apt update
+sudo apt full-upgrade -y
+sudo reboot
 ```
 
-GrizzlyTime is programmed and maintained by a member of FRC Team 66, Grizzly Robotics, Dalton Smith. All rights are reserved. Grizzly Robotics logo rights reserved.
+After reboot, confirm the system is 64-bit:
+
+```bash
+getconf LONG_BIT
+```
+
+The expected result is `64`.
+
+### 2. Install Java and tools
+
+Java 17 is a good default for current Raspberry Pi OS releases:
+
+```bash
+sudo apt install -y openjdk-17-jdk git unzip
+java -version
+```
+
+If Java 11 is required, install `openjdk-11-jdk` and use it consistently. The Gradle build selects JavaFX dependencies based on the Java major version.
+
+### 3. Download the project
+
+```bash
+cd ~
+git clone https://github.com/YOUR-ACCOUNT/GrizzlyTime-PI-Edition.git
+cd GrizzlyTime-PI-Edition
+```
+
+Replace `YOUR-ACCOUNT` with the GitHub account that owns this repository.
+
+### 4. Configure Google Sheets
+
+1. Create or select a Google Cloud project.
+2. Enable the Google Sheets API.
+3. Create OAuth client credentials for a desktop application.
+4. Place the downloaded credentials at `src/main/resources/credentials/credentials.json`.
+5. Build and run once, then complete Google authorization in the browser.
+6. Never commit the credentials file; it is excluded by `.gitignore`.
+
+The destination spreadsheet and application settings are controlled by `config.json`. Review the template before first use and confirm that the authorized account can access the sheet.
+
+### 5. Build and run
+
+```bash
+./gradlew clean build
+./gradlew run
+```
+
+For a distributable fat JAR:
+
+```bash
+./gradlew shadowJar
+ls -l build/libs
+java -jar build/libs/GrizzlyTime-2.4.0-all.jar
+```
+
+The exact JAR filename follows the project version.
+
+## USB barcode scanner
+
+Most scanners work without a driver because they emulate a USB keyboard. Test one in a text editor and confirm that the scan is followed by Enter. Configure the scanner to append Enter if needed. Avoid scanners that require Windows-only configuration software unless they can be configured before deployment.
+
+## Optional desktop autostart
+
+After manual startup works, create an autostart entry:
+
+```bash
+mkdir -p ~/.config/autostart
+nano ~/.config/autostart/grizzlytime.desktop
+```
+
+Use this configuration, replacing the path as needed:
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=GrizzlyTime PI Edition
+Comment=Attendance time logging
+Exec=/bin/bash -lc 'cd /home/pi/GrizzlyTime-PI-Edition && ./gradlew run'
+Terminal=false
+X-GNOME-Autostart-enabled=true
+```
+
+For a production kiosk, use a tested packaged launch command rather than running Gradle at every boot.
+
+## Administrative logout code
+
+Entering `0000000` in the ID field triggers “log out all users.” The application refreshes Google Sheets, finds every row whose Logged In value is `TRUE`, calls the normal logout operation for each matching ID, and displays `All users have been logged out.`
+
+The code is seven digits so it does not collide with the normal six-digit ID format. It is a shared hard-coded administrative code, not a secure password. Anyone who knows it can log out all users, so do not treat it as authentication.
+
+## Troubleshooting
+
+**JavaFX/display errors:** confirm that Raspberry Pi OS Desktop is installed and that the command runs inside the graphical session.
+
+**Google authorization fails:** verify the system date/time, internet access, credentials location, and API enablement.
+
+**Scanner input does nothing:** test in a text editor and configure an Enter suffix.
+
+**Sheets updates are slow:** check Wi-Fi, spreadsheet permissions, and API quotas.
+
+**All-logout does not work:** enter exactly `0000000`, verify that the sheet uses `TRUE` in the Logged In column, and check the application log.
+
+## Development
+
+```bash
+./gradlew spotlessApply
+./gradlew clean build
+```
+
+The project is released under the MIT license and is based on [YCSRobotics/GrizzlyTime](https://github.com/YCSRobotics/GrizzlyTime).

@@ -240,6 +240,29 @@ public class UserActivity {
     }
   }
 
+  // logout all currently logged-in users
+  public void logoutAllUsers() {
+    dbUtils.getUpdatedData();
+
+    ArrayList<String> ids = dbUtils.getColumnData(Constants.kStudentIdColumn, Constants.kMainSheet);
+
+    for (int i = 1; i < ids.size(); i++) {
+      String userID = ids.get(i);
+
+      if (userID == null || userID.trim().isEmpty()) {
+        continue;
+      }
+
+      String loggedIn = dbUtils.getCellData(i, Constants.kLoggedInColumn, Constants.kMainSheet);
+
+      if ("TRUE".equalsIgnoreCase(loggedIn != null ? loggedIn.trim() : "")) {
+        logoutUser(userID);
+      }
+    }
+
+    Platform.runLater(() -> GrizzlyScene.setMessageBoxText("All users have been logged out."));
+  }
+
   // checks if ID is valid long and x digit number (x based on config file)
   public boolean isValidID(String userID) {
     int idLength = LocalDbActivity.kIdLength;

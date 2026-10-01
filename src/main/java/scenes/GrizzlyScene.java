@@ -173,6 +173,12 @@ public class GrizzlyScene {
   private void confirmLogin() {
     setMessageBoxText("Processing...");
 
+    // Admin LogOut ALL
+    if (studentIDBox.getText().equals("0000000")) {
+      userActivity.logoutAllUsers();
+      return;
+    }
+
     // confirm the ID is vslid
     if (!userActivity.isValidID(studentIDBox.getText())) {
       setMessageBoxText("ID " + studentIDBox.getText() + " is invalid.");
@@ -223,6 +229,11 @@ public class GrizzlyScene {
           // attempt login/logout and or account creation
           // do nothing if account creation was cancelled
           try {
+            // Admin LogOut ALL
+            if (studentIDBox.getText().equals("0000000")) {
+              userActivity.logoutAllUsers();
+              return;
+            }
             // check if the user is logged in, and that user exists
             if (!(userActivity.isUserLoggedIn(studentIDBox.getText()))) {
               LoggingUtils.log(Level.INFO, "Logging in: " + studentIDBox.getText());

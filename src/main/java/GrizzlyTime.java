@@ -119,7 +119,7 @@ public class GrizzlyTime extends Application {
   }
 
   public static void main(String[] args) {
-      Application.launch(args);
+    Application.launch(args);
   }
 
   // catch uncaught exceptions
