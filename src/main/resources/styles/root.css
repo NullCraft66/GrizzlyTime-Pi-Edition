@@ -195,9 +195,11 @@ Account Dialog CSS
     -fx-font-size: 15px;
     -fx-background-color: WHITE;
     -fx-prompt-text-fill: #808080;
-    -fx-alignment: top-left;
+    -fx-alignment: center-left;
+    -fx-padding: 4px 6px;
     -fx-max-width: 300;
+    -fx-min-height: 32px;
+    -fx-pref-height: 32px;
     -fx-border-radius: 0px;
     -fx-background-radius: 0;
-    -fx-min-height: 20px;
 }
