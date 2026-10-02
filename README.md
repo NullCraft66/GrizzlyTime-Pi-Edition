@@ -130,6 +130,22 @@ chmod +x scripts/update.sh
 
 The updater fetches `origin/main`, stops if local changes are present, fast-forwards the checkout, and rebuilds the application. It does not alter `config.json`, Google credentials, or other untracked files. Automatic scheduled updates can be added later, but manual updates are recommended first so an update does not interrupt an active session.
 
+### Updating the Pi remotely from Windows
+
+After enabling SSH on the Pi and confirming that the laptop can connect with `ssh pi@<pi-hostname>`, run this from PowerShell or Command Prompt in the project directory:
+
+```bat
+scripts\update-pi.bat pi@<pi-hostname>
+```
+
+For a non-default project location, provide it as the second argument:
+
+```bat
+scripts\update-pi.bat pi@<pi-hostname> /home/pi/GrizzlyTime-PI-Edition
+```
+
+The first SSH connection may ask you to confirm the Pi's host key. SSH keys are recommended so the command can run without typing a password each time. The script updates and rebuilds the Pi; it does not automatically stop or restart an already-running application.
+
 ## Administrative logout code
 
 Entering `0000000` in the ID field triggers “log out all users.” The application refreshes Google Sheets, finds every row whose Logged In value is `TRUE`, calls the normal logout operation for each matching ID, and displays `All users have been logged out.`
