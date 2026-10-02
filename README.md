@@ -118,6 +118,18 @@ X-GNOME-Autostart-enabled=true
 
 For a production kiosk, use a tested packaged launch command rather than running Gradle at every boot.
 
+## Updating an installed Pi
+
+From the project directory, run:
+
+```bash
+chmod +x scripts/update.sh
+./scripts/update.sh
+./gradlew run
+```
+
+The updater fetches `origin/main`, stops if local changes are present, fast-forwards the checkout, and rebuilds the application. It does not alter `config.json`, Google credentials, or other untracked files. Automatic scheduled updates can be added later, but manual updates are recommended first so an update does not interrupt an active session.
+
 ## Administrative logout code
 
 Entering `0000000` in the ID field triggers “log out all users.” The application refreshes Google Sheets, finds every row whose Logged In value is `TRUE`, calls the normal logout operation for each matching ID, and displays `All users have been logged out.`
