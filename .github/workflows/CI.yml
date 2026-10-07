@@ -36,7 +36,12 @@ jobs:
           chmod +x ./gradlew
       - name: Build ShadowJar
         run: |
-          ./gradlew shadowJar
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            ./gradlew.bat shadowJar
+          else
+            ./gradlew shadowJar
+          fi
+        shell: bash
       - name: Publish ShadowJar
         uses: actions/upload-artifact@v2
         with:
