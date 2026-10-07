@@ -8,6 +8,7 @@ import helpers.Constants;
 import helpers.LoggingUtils;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -56,6 +57,38 @@ public class UserActivity {
     createNewUser(userData, userID);
 
     return false;
+  }
+
+  /** Returns the registered user's display name, or null when the ID is not registered. */
+  public String getUserDisplayName(String userID) throws Exception {
+    dbUtils.getUpdatedData();
+    int userRow = dbUtils.getCellRowFromColumn(userID, Constants.kStudentIdColumn, Constants.kMainSheet);
+    if (userRow < 0) {
+      return null;
+    }
+
+    String firstName = dbUtils.getCellData(userRow, Constants.kFirstNameColumn, Constants.kMainSheet);
+    String lastName = dbUtils.getCellData(userRow, Constants.kLastNameColumn, Constants.kMainSheet);
+    return (firstName == null ? "" : firstName.trim()) + " "
+        + (lastName == null ? "" : lastName.trim());
+  }
+
+  public String findUserIdByIdentity(String identity) throws Exception {
+    dbUtils.getUpdatedData();
+    String search = identity.trim().toLowerCase();
+    ArrayList<String> ids = dbUtils.getColumnData(Constants.kStudentIdColumn, Constants.kMainSheet);
+    ArrayList<String> first = dbUtils.getColumnData(Constants.kFirstNameColumn, Constants.kMainSheet);
+    ArrayList<String> last = dbUtils.getColumnData(Constants.kLastNameColumn, Constants.kMainSheet);
+    ArrayList<String> emails = dbUtils.getColumnData(Constants.kEmailColumn, Constants.kMainSheet);
+    String match = null;
+    for (int i = 1; i < ids.size(); i++) {
+      String fullName = (first.get(i) + " " + last.get(i)).trim().toLowerCase();
+      if (search.equals(fullName) || search.equals(emails.get(i).trim().toLowerCase())) {
+        if (match != null) return null;
+        match = ids.get(i).trim();
+      }
+    }
+    return match;
   }
 
   public void createNewUser(ArrayList<String> userData, String userID)
@@ -149,7 +182,14 @@ public class UserActivity {
 
       Platform.runLater(
           () -> {
-            GrizzlyScene.setMessageBoxText("Successfully logged in user: " + userID);
+            String displayName;
+            try {
+              displayName = getUserDisplayName(userID);
+            } catch (Exception e) {
+              LoggingUtils.log(Level.WARNING, e);
+              displayName = userID;
+            }
+            GrizzlyScene.setMessageBoxText("Welcome " + displayName.trim() + "!");
             GrizzlyScene.clearInput();
           });
     }
@@ -178,65 +218,23 @@ public class UserActivity {
       dbUtils.setCellData(
           userRow, Constants.kLastLogoutColumn, formattedLogoutTime, Constants.kMainSheet);
 
-      int diffHours = logoutTime.getHour() - loginTime.getHour();
-      int diffMinutes = logoutTime.getMinute() - loginTime.getMinute();
-      int diffSeconds = logoutTime.getSecond() - loginTime.getSecond();
-
-      boolean err = false;
-
-      if (diffHours < 0) {
-        LoggingUtils.log(
-            Level.SEVERE,
-            "Well this is awkward, difference shouldn't be negative: h:"
-                + diffHours
-                + " m:"
-                + diffMinutes
-                + " s:"
-                + diffSeconds);
-        err = true;
-      }
-
-      if (diffSeconds < 0) {
-        diffMinutes -= 1;
-        diffSeconds = 60 - Math.abs(diffSeconds);
-      }
-
-      if (diffMinutes < 0) {
-        diffHours -= 1;
-        diffMinutes = 60 - Math.abs(diffMinutes);
-      }
-
-      if (loginTime.getYear() == logoutTime.getYear()) {
-        if (loginTime.getMonth() == logoutTime.getMonth()) {
-          if (loginTime.getDayOfMonth() != logoutTime.getDayOfMonth()) {
-            err = true;
-          }
-        } else {
-          err = true;
-        }
+      Duration elapsed = Duration.between(loginTime, logoutTime);
+      if (elapsed.isNegative()) {
+        LoggingUtils.log(Level.SEVERE, "Logout time occurred before login time for " + userID);
       } else {
-        err = true;
-      }
-
-      if (!err) {
+        long totalSeconds = elapsed.getSeconds();
+        long diffHours = totalSeconds / 3600;
+        long diffMinutes = (totalSeconds % 3600) / 60;
+        long diffSeconds = totalSeconds % 60;
         String totalTimeFromDifference =
             String.format("%02d:%02d:%02d", diffHours, diffMinutes, diffSeconds);
-        LocalTime totalHoursTime = LocalTime.parse(totalTimeFromDifference);
-
-        logoutActivity.logoutUserWithHours(
-            userID, userRow, totalHoursTime, totalTimeFromDifference);
+        LocalTime totalHoursTime = LocalTime.of((int) (diffHours % 24), (int) diffMinutes, (int) diffSeconds);
+        logoutActivity.logoutUserWithHours(userID, userRow, totalHoursTime, totalTimeFromDifference);
       }
 
       // logout the user
       dbUtils.setCellData(userRow, Constants.kLoggedInColumn, "FALSE", Constants.kMainSheet);
 
-      if (err) {
-        Platform.runLater(
-            () -> {
-              GrizzlyScene.setMessageBoxText("You forgot to log out! Please re-login!");
-              GrizzlyScene.clearInput();
-            });
-      }
     }
   }
 

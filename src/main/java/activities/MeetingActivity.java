@@ -1,0 +1,118 @@
+package activities;
+
+import databases.DatabaseProcess;
+import helpers.Constants;
+import helpers.LoggingUtils;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import scenes.GrizzlyScene;
+
+/** Activates the meeting configured for today and closes it at its scheduled end time. */
+public class MeetingActivity {
+  private static MeetingActivity activeInstance;
+  private static final DateTimeFormatter DATE = DateTimeFormatter.ISO_LOCAL_DATE;
+  private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("H:mm");
+  private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+    Thread thread = new Thread(r, "meeting-scheduler");
+    thread.setDaemon(true);
+    return thread;
+  });
+  private final DatabaseProcess database = new DatabaseProcess();
+  private final UserActivity users = new UserActivity();
+  private String endedMeetingKey;
+  private LocalDateTime extendedEndTime;
+
+  public MeetingActivity() {
+    activeInstance = this;
+  }
+
+  public static MeetingActivity getActiveInstance() {
+    return activeInstance;
+  }
+
+  public synchronized void endMeeting() {
+    endedMeetingKey = "manual-" + LocalDate.now();
+    users.logoutAllUsers();
+    updateMeetingRow("ENDED", LocalTime.now());
+    GrizzlyScene.setMessageBoxText("Meeting ended. Everyone has been logged out.");
+  }
+
+  public synchronized void extendMeeting(long hours, long minutes) {
+    LocalDateTime base = extendedEndTime != null ? extendedEndTime : LocalDateTime.now();
+    extendedEndTime = base.plus(Duration.ofHours(hours).plusMinutes(minutes));
+    GrizzlyScene.setMessageBoxText("Meeting extended until " + extendedEndTime.toLocalTime());
+  }
+
+  public void start() {
+    scheduler.scheduleWithFixedDelay(this::checkMeeting, 0, 30, TimeUnit.SECONDS);
+  }
+
+  private void checkMeeting() {
+    try {
+      List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
+      if (rows == null) return;
+      LocalDateTime now = LocalDateTime.now();
+      for (int i = 1; i < rows.size(); i++) {
+        List<Object> row = rows.get(i);
+        if (row.size() < 5) continue;
+        LocalDate date = LocalDate.parse(value(row, 2), DATE);
+        LocalTime start = LocalTime.parse(value(row, 3), TIME);
+        LocalTime end = LocalTime.parse(value(row, 4), TIME);
+        LocalDateTime endDateTime = LocalDateTime.of(date, end);
+        String status = row.size() > 5 ? value(row, 5) : "";
+        if (row.size() > 6 && !value(row, 6).isEmpty()) {
+          endDateTime = LocalDateTime.of(date, LocalTime.parse(value(row, 6), TIME));
+        }
+        if (extendedEndTime != null && date.equals(now.toLocalDate())) {
+          endDateTime = extendedEndTime;
+        }
+        String key = date + "-" + end;
+
+        if ((now.isEqual(endDateTime) || now.isAfter(endDateTime))
+            && !key.equals(endedMeetingKey)
+            && !"PROCESSED".equalsIgnoreCase(status)) {
+          endedMeetingKey = key;
+          users.logoutAllUsers();
+          updateMeetingRow("ENDED", endDateTime.toLocalTime());
+          GrizzlyScene.setMessageBoxText("Meeting ended. Everyone has been logged out.");
+          return;
+        }
+        if (!now.isBefore(LocalDateTime.of(date, start)) && now.isBefore(endDateTime)) {
+          GrizzlyScene.setMessageBoxText("Meeting active: " + value(row, 1));
+          return;
+        }
+      }
+    } catch (Exception e) {
+      LoggingUtils.log(Level.WARNING, e);
+    }
+  }
+
+  private String value(List<Object> row, int index) {
+    return row.get(index).toString().trim();
+  }
+
+  private void updateMeetingRow(String status, LocalTime endTime) {
+    try {
+      List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
+      if (rows == null) return;
+      for (int i = 1; i < rows.size(); i++) {
+        List<Object> row = rows.get(i);
+        if (row.size() >= 3 && LocalDate.now().toString().equals(value(row, 2))) {
+          database.updateSpreadSheet(i + 1, 6, status, Constants.kMeetingsSheet);
+          database.updateSpreadSheet(i + 1, 7, endTime.toString(), Constants.kMeetingsSheet);
+          return;
+        }
+      }
+    } catch (Exception e) {
+      LoggingUtils.log(Level.WARNING, e);
+    }
+  }
+}

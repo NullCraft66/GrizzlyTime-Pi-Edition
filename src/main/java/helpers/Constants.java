@@ -27,6 +27,7 @@ public class Constants {
   public static final int kMainSheet = 0;
   public static final int kLogSheet = 1;
   public static final int kRegistrationSheet = 2;
+  public static final int kMeetingsSheet = 3;
 
   // configuration locations
   public static final String kConfigName = "config.json";

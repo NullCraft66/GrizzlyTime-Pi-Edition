@@ -2,6 +2,7 @@ package scenes;
 
 import activities.KeyActivity;
 import activities.LocalDbActivity;
+import activities.MeetingActivity;
 import activities.UserActivity;
 import exceptions.CancelledUserCreationException;
 import exceptions.ConnectToWorksheetException;
@@ -39,6 +40,7 @@ public class GrizzlyScene {
 
   // define our scene objects
   private Button loginButton = new Button("Login/Logout");
+  private Hyperlink forgotIdLink = new Hyperlink("Forgot ID?");
   private UserActivity userActivity = new UserActivity();
   private Text description = new Text(Constants.kUserTutorial);
   private Hyperlink creditsLink = new Hyperlink("Credits");
@@ -84,6 +86,7 @@ public class GrizzlyScene {
     messageText.setId("messageText");
     studentIDBox.setId("textBox");
     loginButton.setId("confirmButton");
+    forgotIdLink.setId("hyperlinkBottom");
     creditsLink.setId("hyperlinkBottom");
     optionsLink.setId("hyperlinkBottom");
     creditsText.setId("hyperlinkBottom");
@@ -118,6 +121,7 @@ public class GrizzlyScene {
     title.add(description, 0, 1);
     options.add(studentIDBox, 0, 0);
     options.add(loginButton, 1, 0);
+    options.add(forgotIdLink, 0, 1);
     subRoot.add(title, 0, 0);
     subRoot.add(options, 0, 1);
     subRoot.add(messageText, 0, 2);
@@ -150,6 +154,16 @@ public class GrizzlyScene {
     // login button event handler
     loginButton.setOnAction(event -> confirmLogin());
 
+    forgotIdLink.setOnAction(
+        event -> {
+          String replacementId = findIdFromIdentity();
+          studentIDBox.clear();
+          if (replacementId != null && !replacementId.trim().isEmpty()) {
+            studentIDBox.setText(replacementId.trim());
+          }
+          studentIDBox.requestFocus();
+        });
+
     creditsLink.setOnAction(event -> showCredits());
 
     optionsLink.setOnAction(
@@ -171,11 +185,14 @@ public class GrizzlyScene {
 
   // helper login method
   private void confirmLogin() {
+    // RFID readers and barcode scanners commonly add trailing whitespace before Enter.
+    String normalizedId = studentIDBox.getText().trim();
+    studentIDBox.setText(normalizedId);
     setMessageBoxText("Processing...");
 
     // Admin LogOut ALL
-    if (studentIDBox.getText().equals("0000000")) {
-      userActivity.logoutAllUsers();
+    if (normalizedId.equals("0000000")) {
+      handleMeetingControls();
       return;
     }
 
@@ -213,6 +230,33 @@ public class GrizzlyScene {
     }
   }
 
+  private void handleMeetingControls() {
+    String action = alertUtils.getMeetingAdminAction();
+    MeetingActivity meeting = MeetingActivity.getActiveInstance();
+    if (meeting == null || action == null) return;
+    if (action.equals("END")) {
+      meeting.endMeeting();
+    } else {
+      long[] extension = alertUtils.getMeetingExtension();
+      if (extension != null) meeting.extendMeeting(extension[0], extension[1]);
+    }
+    studentIDBox.clear();
+  }
+
+  private String findIdFromIdentity() {
+    String identity = alertUtils.getIdentityLookup();
+    if (identity == null || identity.trim().isEmpty()) return null;
+    try {
+      String id = userActivity.findUserIdByIdentity(identity);
+      if (id == null) setMessageBoxText("No unique matching user was found.");
+      return id;
+    } catch (Exception e) {
+      LoggingUtils.log(Level.WARNING, e);
+      setMessageBoxText("Unable to search for your ID. Please try again.");
+      return null;
+    }
+  }
+
   // login the user, check if hands free or not
   private void loginUser() {
     // separate login process on different thread to ensure
@@ -234,14 +278,32 @@ public class GrizzlyScene {
               userActivity.logoutAllUsers();
               return;
             }
-            // check if the user is logged in, and that user exists
-            if (!(userActivity.isUserLoggedIn(studentIDBox.getText()))) {
-              LoggingUtils.log(Level.INFO, "Logging in: " + studentIDBox.getText());
-              userActivity.loginUser(studentIDBox.getText());
+            String userID = studentIDBox.getText();
+            String displayName = userActivity.getUserDisplayName(userID);
 
+            // Unknown IDs use the existing account-creation flow.
+            if (displayName == null) {
+              if (!(userActivity.isUserLoggedIn(userID))) {
+                LoggingUtils.log(Level.INFO, "Logging in: " + userID);
+                userActivity.loginUser(userID);
+              }
+            } else if (alertUtils.confirmUserNameFromBackground(displayName)) {
+              if (!userActivity.isUserLoggedIn(userID)) {
+                LoggingUtils.log(Level.INFO, "Logging in: " + userID);
+                userActivity.loginUser(userID);
+              } else {
+                LoggingUtils.log(Level.INFO, "Logging out: " + userID);
+                userActivity.logoutUser(userID);
+              }
             } else {
-              LoggingUtils.log(Level.INFO, "Logging out: " + studentIDBox.getText());
-              userActivity.logoutUser(studentIDBox.getText());
+              String replacementId = findIdFromIdentity();
+              studentIDBox.clear();
+              if (replacementId != null && !replacementId.trim().isEmpty()) {
+                studentIDBox.setText(replacementId.trim());
+                confirmLogin();
+              } else {
+                setMessageBoxText("Enter a new ID number to continue.");
+              }
             }
 
           } catch (CancelledUserCreationException e) {

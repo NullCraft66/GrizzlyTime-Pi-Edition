@@ -1,5 +1,6 @@
 import activities.KeyActivity;
 import activities.LocalDbActivity;
+import activities.MeetingActivity;
 import helpers.AlertUtils;
 import helpers.CommonUtils;
 import helpers.Constants;
@@ -28,6 +29,7 @@ public class GrizzlyTime extends Application {
   private UpdateNotifier updater = new UpdateNotifier();
 
   private LocalDbActivity dbActivity = new LocalDbActivity();
+  private MeetingActivity meetingActivity;
 
   @Override
   public void start(Stage primaryStage) {
@@ -38,6 +40,8 @@ public class GrizzlyTime extends Application {
         (thread, throwable) -> globalExceptionHandler(throwable));
 
     dbActivity.updateLocalDb();
+    // LocalDbActivity must load the spreadsheet ID before any database-backed activity is created.
+    meetingActivity = new MeetingActivity();
 
     // check if custom icon
     File file =
@@ -101,6 +105,7 @@ public class GrizzlyTime extends Application {
           SceneManager.updateScene(Constants.kLoadMainScene);
           AlertUtils.stage = primaryStage;
           updater.checkUpdates();
+          meetingActivity.start();
           keyHandlers.setKeyHandlers(scene, primaryStage);
           LoggingUtils.log(Level.INFO, "Run second");
         });

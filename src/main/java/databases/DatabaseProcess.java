@@ -49,6 +49,7 @@ public class DatabaseProcess {
   private static final String mainPage = "Current";
   private static final String logPage = "Date Log";
   private static final String regPage = "Student Registration";
+  private static final String meetingsPage = "Meetings";
 
   public static boolean worksheetIsEmpty = false;
 
@@ -363,6 +364,9 @@ public class DatabaseProcess {
 
       case Constants.kRegistrationSheet:
         return regPage;
+
+      case Constants.kMeetingsSheet:
+        return meetingsPage;
 
       default:
         return mainPage;

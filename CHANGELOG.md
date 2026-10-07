@@ -25,3 +25,11 @@ This is a convenience code, not secure authentication. Anyone who knows it can l
 
 - Original GrizzlyTime 2.4.0 baseline.
 - Google Sheets attendance logging, student registration, USB scanner support, and JavaFX desktop interface.
+## Unreleased - Testing
+
+- Added Google Sheets meeting scheduling with automatic meeting-end attendance processing.
+- Added administrator controls to end or extend a meeting using `0000000`.
+- Added name/email lookup for forgotten IDs and welcome-name login confirmation.
+- Fixed elapsed-time calculations across hour and date boundaries.
+- Added update-and-restart behavior to the Pi updater.
+- Marked meeting, ID lookup, and RFID behavior as test-stage functionality.

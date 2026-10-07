@@ -25,4 +25,9 @@ git merge --ff-only origin/main
 ./gradlew clean build
 
 echo "Update complete at $(git rev-parse --short HEAD)."
-echo "Start the application with: ./gradlew run"
+echo "Stopping any running GrizzlyTime process..."
+pkill -f 'GrizzlyTime|org.gradle.wrapper.GradleWrapperMain run' || true
+
+echo "Starting GrizzlyTime..."
+nohup ./gradlew run > logs/grizzlytime.log 2>&1 &
+echo "GrizzlyTime restarted. Log: ${PROJECT_DIR}/logs/grizzlytime.log"

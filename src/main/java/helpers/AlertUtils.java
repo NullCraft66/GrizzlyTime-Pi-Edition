@@ -69,6 +69,76 @@ public class AlertUtils {
     }
   }
 
+  /** Confirm a user's name before changing their login state. */
+  public boolean confirmUserName(String firstName, String lastName) {
+    return confirmInput("Are you " + firstName + " " + lastName + "?");
+  }
+
+  public boolean confirmUserNameFromBackground(String displayName) {
+    return confirmInput("Are you " + displayName.trim() + "?");
+  }
+
+  /** Ask for a replacement ID after the scanned ID was rejected. */
+  public String getIdentityLookup() {
+    if (Platform.isFxApplicationThread()) {
+      return showIdentityLookupDialog();
+    }
+
+    AtomicReference<String> result = new AtomicReference<>(null);
+    AtomicBoolean isSet = new AtomicBoolean(false);
+    Platform.runLater(
+        () -> {
+          result.set(showIdentityLookupDialog());
+          isSet.set(true);
+        });
+    while (!isSet.get()) {}
+    return result.get();
+  }
+
+  public String getMeetingAdminAction() {
+    Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    alert.initOwner(stage);
+    alert.setTitle("Meeting Controls");
+    alert.setHeaderText("Choose a meeting action");
+    ButtonType end = new ButtonType("End Meeting");
+    ButtonType extend = new ButtonType("Extend Meeting");
+    alert.getButtonTypes().setAll(end, extend, ButtonType.CANCEL);
+    Optional<ButtonType> result = alert.showAndWait();
+    if (!result.isPresent() || result.get() == ButtonType.CANCEL) return null;
+    return result.get() == end ? "END" : "EXTEND";
+  }
+
+  public long[] getMeetingExtension() {
+    TextInputDialog dialog = new TextInputDialog("0:30");
+    dialog.initOwner(stage);
+    dialog.setTitle("Extend Meeting");
+    dialog.setHeaderText("Enter additional time as hours:minutes");
+    dialog.setContentText("Extension:");
+    Optional<String> result = dialog.showAndWait();
+    if (!result.isPresent()) return null;
+    try {
+      String[] parts = result.get().trim().split(":");
+      long hours = Long.parseLong(parts[0]);
+      long minutes = parts.length > 1 ? Long.parseLong(parts[1]) : 0;
+      if (hours < 0 || minutes < 0 || minutes > 59) return null;
+      return new long[] {hours, minutes};
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  private String showIdentityLookupDialog() {
+    TextInputDialog dialog = new TextInputDialog();
+    dialog.initOwner(stage);
+    dialog.setTitle("Find Your ID");
+    dialog.setHeaderText("Search using your name or email address.");
+    dialog.setContentText("Name or email:");
+    dialog.getDialogPane().getStylesheets().add(Constants.kRootStylesheet);
+    dialog.getEditor().requestFocus();
+    Optional<String> result = dialog.showAndWait();
+    return result.orElse(null);
+  }
+
   private boolean customDialog(String title, String header, String message) {
     // Create the custom dialog.
     Dialog dialog = new Dialog<>();

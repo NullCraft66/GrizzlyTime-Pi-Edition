@@ -6,7 +6,7 @@ This edition targets a Raspberry Pi 4 or 5 running Raspberry Pi OS 64-bit with D
 
 ## What changed from upstream
 
-- Added the administrative `0000000` code to log out all currently logged-in users.
+- Added the administrative `0000000` code for meeting controls: end a meeting or extend it.
 - Added Raspberry Pi installation, display, autostart, troubleshooting, and maintenance guidance.
 - Kept the original Google Sheets workflow and JavaFX interface.
 
@@ -128,7 +128,7 @@ chmod +x scripts/update.sh
 ./gradlew run
 ```
 
-The updater fetches `origin/main`, stops if local changes are present, fast-forwards the checkout, and rebuilds the application. It does not alter `config.json`, Google credentials, or other untracked files. Automatic scheduled updates can be added later, but manual updates are recommended first so an update does not interrupt an active session.
+The updater fetches `origin/main`, stops if local changes are present, fast-forwards the checkout, rebuilds the application, stops the running app, and starts it again in the background. It does not alter `config.json`, Google credentials, or other untracked files.
 
 ### Updating the Pi remotely from Windows
 
@@ -148,7 +148,7 @@ The first SSH connection may ask you to confirm the Pi's host key. SSH keys are 
 
 ## Administrative logout code
 
-Entering `0000000` in the ID field triggers “log out all users.” The application refreshes Google Sheets, finds every row whose Logged In value is `TRUE`, calls the normal logout operation for each matching ID, and displays `All users have been logged out.`
+Entering `0000000` opens meeting controls. The administrator can end the meeting, which logs out every row whose Logged In value is `TRUE`, or extend the active meeting by entering hours and minutes.
 
 The code is seven digits so it does not collide with the normal six-digit ID format. It is a shared hard-coded administrative code, not a secure password. Anyone who knows it can log out all users, so do not treat it as authentication.
 
@@ -170,5 +170,12 @@ The code is seven digits so it does not collide with the normal six-digit ID for
 ./gradlew spotlessApply
 ./gradlew clean build
 ```
+
+## Testing status
+
+Meeting scheduling, remote meeting controls, name/email ID lookup, and automatic Pi restart are
+currently test-stage features. Test them with a test meeting and test user before using them for
+real attendance records. RFID support has not been tested with a physical reader yet; readers
+that emulate a USB keyboard and append Enter are expected to use the existing ID input path.
 
 The project is released under the MIT license and is based on [YCSRobotics/GrizzlyTime](https://github.com/YCSRobotics/GrizzlyTime).
