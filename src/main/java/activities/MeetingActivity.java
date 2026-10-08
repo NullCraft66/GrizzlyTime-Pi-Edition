@@ -95,11 +95,13 @@ public class MeetingActivity {
         if (extendedEndTime != null && date.equals(now.toLocalDate())) {
           endDateTime = extendedEndTime;
         }
+        if (!date.equals(now.toLocalDate())) continue;
         String key = date + "-" + end;
 
         if ((now.isEqual(endDateTime) || now.isAfter(endDateTime))
             && !key.equals(endedMeetingKey)
-            && !"PROCESSED".equalsIgnoreCase(status)) {
+            && !"PROCESSED".equalsIgnoreCase(status)
+            && !"ENDED".equalsIgnoreCase(status)) {
           endedMeetingKey = key;
           users.logoutAllUsers();
           updateMeetingRow("ENDED", endDateTime.toLocalTime());
