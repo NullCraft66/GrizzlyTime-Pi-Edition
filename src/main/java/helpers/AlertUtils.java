@@ -98,6 +98,8 @@ public class AlertUtils {
   public String getMeetingAdminAction() {
     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
     alert.initOwner(stage);
+    alert.getDialogPane().getStylesheets().add(Constants.kRootStylesheet);
+    alert.getDialogPane().getStyleClass().add("myDialog");
     alert.setTitle("Meeting Controls");
     alert.setHeaderText("Choose a meeting action");
     ButtonType end = new ButtonType("End Meeting");
