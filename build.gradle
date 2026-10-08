@@ -38,6 +38,8 @@ dependencies {
         implementation "org.openjfx:javafx:11.0.1"
     } else if (javaVer == 17) {
         implementation "org.openjfx:javafx:18-ea+9"
+    } else if (javaVer >= 21) {
+        implementation "org.openjfx:javafx:21.0.2"
     }
 }
 
