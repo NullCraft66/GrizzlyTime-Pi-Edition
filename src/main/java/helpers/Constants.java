@@ -60,13 +60,17 @@ public class Constants {
       ""
           + "GrizzlyTime is a JavaFX application programmed originally for FRC Team 66, Grizzly Robotics. "
           + "GrizzlyTime was programmed by Grizzly Robotics Team Captain of Year 2018/2019, Dalton Smith. "
-          + "This Raspberry Pi edition was maintained and extended by Ephraim Kisia. "
+          + "This edition was maintained and extended by Ephraim Kisia, "
+          + "including meeting scheduling, attendance automation, ID lookup, "
+          + "Pi update tools, and updated RFID-compatible input support. "
           + "All rights and permissions are reserved. Content is licensed under MIT. See below for more information.";
   public static final String kCreditsList =
       "GrizzlyTime uses the following open source projects:\n"
           + "Google Java API Client 1.23.0\n"
           + "Commons-IO 2.6\n"
-          + "Org.Json";
+          + "Org.Json\n\n"
+          + "Original project: https://github.com/YCSRobotics/GrizzlyTime\n"
+          + "Raspberry Pi edition: https://github.com/NullCraft66/GrizzlyTime-Pi-Edition";
   public static final int kCreditsStageWidth = 630;
   public static final int kCreditsStageHeight = 550;
   public static final int kCreditsBearHeight = 225;
