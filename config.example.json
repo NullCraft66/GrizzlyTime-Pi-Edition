@@ -1,0 +1,9 @@
+{
+  "sheet": "PASTE_YOUR_GOOGLE_SHEET_ID_HERE",
+  "handsFreeMode": "false",
+  "updateNotifier": "true",
+  "idLength": "6",
+  "idLengthFallback": "7",
+  "applicationName": "Your_Team_Time",
+  "grizzlyVerification": "false"
+}
