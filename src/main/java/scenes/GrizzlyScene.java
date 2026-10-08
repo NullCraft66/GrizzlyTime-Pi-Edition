@@ -35,6 +35,7 @@ public class GrizzlyScene {
   // object that should be able to be modified by calling
   // this scene directly
   private static Label messageText = new Label("");
+  private static Label meetingStatusText = new Label("No active meeting");
 
   private static TextField studentIDBox = new TextField();
 
@@ -84,6 +85,7 @@ public class GrizzlyScene {
 
     // update CSS IDS
     messageText.setId("messageText");
+    meetingStatusText.setId("meetingStatus");
     studentIDBox.setId("textBox");
     loginButton.setId("confirmButton");
     forgotIdLink.setId("hyperlinkBottom");
@@ -102,11 +104,13 @@ public class GrizzlyScene {
     options.setAlignment(Pos.CENTER);
     title.setAlignment(Pos.CENTER);
     messageText.setAlignment(Pos.CENTER);
+    meetingStatusText.setAlignment(Pos.CENTER);
     description.setTextAlignment(TextAlignment.CENTER);
     description.setId("textDescription");
 
     // manually align message text because Gridpane is weird
     GridPane.setHalignment(messageText, HPos.CENTER);
+    GridPane.setHalignment(meetingStatusText, HPos.CENTER);
     GridPane.setHalignment(description, HPos.CENTER);
     GridPane.setHalignment(subRoot, HPos.CENTER);
 
@@ -124,7 +128,8 @@ public class GrizzlyScene {
     options.add(forgotIdLink, 0, 1);
     subRoot.add(title, 0, 0);
     subRoot.add(options, 0, 1);
-    subRoot.add(messageText, 0, 2);
+    subRoot.add(meetingStatusText, 0, 2);
+    subRoot.add(messageText, 0, 3);
 
     // sub root details
     subRoot.setVgap(10);
@@ -350,6 +355,14 @@ public class GrizzlyScene {
       messageText.setText(text);
     } else {
       Platform.runLater(() -> messageText.setText(text));
+    }
+  }
+
+  public static void setMeetingStatus(String text) {
+    if (Platform.isFxApplicationThread()) {
+      meetingStatusText.setText(text);
+    } else {
+      Platform.runLater(() -> meetingStatusText.setText(text));
     }
   }
 

@@ -79,8 +79,12 @@ public class MeetingActivity {
   private void checkMeeting() {
     try {
       List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
-      if (rows == null) return;
+      if (rows == null) {
+        GrizzlyScene.setMeetingStatus("No active meeting");
+        return;
+      }
       LocalDateTime now = LocalDateTime.now();
+      boolean active = false;
       for (int i = 1; i < rows.size(); i++) {
         List<Object> row = rows.get(i);
         if (row.size() < 5) continue;
@@ -105,14 +109,17 @@ public class MeetingActivity {
           endedMeetingKey = key;
           users.logoutAllUsers();
           updateMeetingRow("ENDED", endDateTime.toLocalTime());
+          GrizzlyScene.setMeetingStatus("No active meeting");
           GrizzlyScene.setMessageBoxText("Meeting ended. Everyone has been logged out.");
           return;
         }
         if (!now.isBefore(LocalDateTime.of(date, start)) && now.isBefore(endDateTime)) {
-          GrizzlyScene.setMessageBoxText("Meeting active: " + value(row, 1));
+          active = true;
+          GrizzlyScene.setMeetingStatus("Active meeting: " + value(row, 1));
           return;
         }
       }
+      if (!active) GrizzlyScene.setMeetingStatus("No active meeting");
     } catch (Exception e) {
       LoggingUtils.log(Level.WARNING, e);
     }
