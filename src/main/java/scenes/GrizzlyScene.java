@@ -78,6 +78,8 @@ public class GrizzlyScene {
 
   public void updateInterface(GridPane root) {
 
+    root.setAlignment(Pos.CENTER);
+
     // create the upper image
     imageView.setPreserveRatio(true);
     imageView.setSmooth(true);
@@ -146,6 +148,7 @@ public class GrizzlyScene {
 
   public void reShowUI(GridPane root) {
     root.setId("main");
+    root.setAlignment(Pos.CENTER);
 
     // add to root pane
     root.add(imageView, 0, 0);
