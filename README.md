@@ -86,7 +86,7 @@ For a distributable fat JAR:
 ```bash
 ./gradlew shadowJar
 ls -l build/libs
-java -jar build/libs/GrizzlyTime-2.4.0-all.jar
+java -jar build/libs/GrizzlyTime-3.0.0-all.jar
 ```
 
 The exact JAR filename follows the project version.
