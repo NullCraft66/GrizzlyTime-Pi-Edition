@@ -22,11 +22,6 @@ See [CHANGELOG.md](CHANGELOG.md) for the full change history.
 - Google account and Google Sheets API credentials
 - Monitor, keyboard, and mouse for initial setup
 
-## Customize for another team
-
-Use this repository as a GitHub template, then follow [CUSTOMIZATION.md](CUSTOMIZATION.md). The
-blank spreadsheet template is available at [templates/GrizzlyTime-v3-template.xlsx](templates/GrizzlyTime-v3-template.xlsx).
-
 This is not a headless service. A graphical desktop session is required because the application uses JavaFX.
 
 ## Install on Raspberry Pi
