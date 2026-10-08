@@ -137,7 +137,9 @@ public class MeetingActivity {
           GrizzlyScene.setMessageBoxText("Meeting ended. Everyone has been logged out.");
           return;
         }
-        if (!now.isBefore(LocalDateTime.of(date, start)) && now.isBefore(endDateTime)) {
+        if ("ACTIVE".equalsIgnoreCase(status)
+            && !now.isBefore(LocalDateTime.of(date, start))
+            && now.isBefore(endDateTime)) {
           active = true;
           GrizzlyScene.setMeetingStatus("Active meeting: " + value(row, 1));
           return;
