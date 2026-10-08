@@ -234,7 +234,21 @@ public class GrizzlyScene {
     String action = alertUtils.getMeetingAdminAction();
     MeetingActivity meeting = MeetingActivity.getActiveInstance();
     if (meeting == null || action == null) return;
-    if (action.equals("END")) {
+    if (action.equals("START")) {
+      String[] meetingInfo = alertUtils.getNewMeeting();
+      if (meetingInfo != null) {
+        try {
+          String[] duration = meetingInfo[1].split(":");
+          long hours = Long.parseLong(duration[0]);
+          long minutes = duration.length > 1 ? Long.parseLong(duration[1]) : 0;
+          if (hours >= 0 && minutes >= 0 && minutes < 60) {
+            meeting.startMeeting(meetingInfo[0], hours, minutes);
+          }
+        } catch (Exception e) {
+          setMessageBoxText("Use a duration like 1:30.");
+        }
+      }
+    } else if (action.equals("END")) {
       meeting.endMeeting();
     } else {
       long[] extension = alertUtils.getMeetingExtension();

@@ -51,6 +51,27 @@ public class MeetingActivity {
     GrizzlyScene.setMessageBoxText("Meeting extended until " + extendedEndTime.toLocalTime());
   }
 
+  public synchronized void startMeeting(String name, long hours, long minutes) {
+    try {
+      List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
+      int row = rows == null ? 2 : rows.size() + 1;
+      LocalDateTime start = LocalDateTime.now();
+      LocalDateTime end = start.plus(Duration.ofHours(hours).plusMinutes(minutes));
+      database.updateSpreadSheet(row, 1, String.valueOf(row - 1), Constants.kMeetingsSheet);
+      database.updateSpreadSheet(row, 2, name, Constants.kMeetingsSheet);
+      database.updateSpreadSheet(row, 3, start.toLocalDate().toString(), Constants.kMeetingsSheet);
+      database.updateSpreadSheet(row, 4, start.toLocalTime().withSecond(0).withNano(0).toString(), Constants.kMeetingsSheet);
+      database.updateSpreadSheet(row, 5, end.toLocalTime().withSecond(0).withNano(0).toString(), Constants.kMeetingsSheet);
+      database.updateSpreadSheet(row, 6, "ACTIVE", Constants.kMeetingsSheet);
+      extendedEndTime = end;
+      endedMeetingKey = null;
+      GrizzlyScene.setMessageBoxText("Meeting started: " + name);
+    } catch (Exception e) {
+      LoggingUtils.log(Level.WARNING, e);
+      GrizzlyScene.setMessageBoxText("Unable to start meeting. Check Google Sheets access.");
+    }
+  }
+
   public void start() {
     scheduler.scheduleWithFixedDelay(this::checkMeeting, 0, 30, TimeUnit.SECONDS);
   }

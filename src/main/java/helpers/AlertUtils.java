@@ -102,10 +102,31 @@ public class AlertUtils {
     alert.setHeaderText("Choose a meeting action");
     ButtonType end = new ButtonType("End Meeting");
     ButtonType extend = new ButtonType("Extend Meeting");
-    alert.getButtonTypes().setAll(end, extend, ButtonType.CANCEL);
+    ButtonType start = new ButtonType("Start Meeting");
+    alert.getButtonTypes().setAll(start, end, extend, ButtonType.CANCEL);
     Optional<ButtonType> result = alert.showAndWait();
     if (!result.isPresent() || result.get() == ButtonType.CANCEL) return null;
+    if (result.get() == start) return "START";
     return result.get() == end ? "END" : "EXTEND";
+  }
+
+  public String[] getNewMeeting() {
+    TextInputDialog nameDialog = new TextInputDialog("Meeting");
+    nameDialog.initOwner(stage);
+    nameDialog.setTitle("Start Meeting");
+    nameDialog.setHeaderText("Enter a name for the new meeting.");
+    nameDialog.setContentText("Meeting name:");
+    Optional<String> name = nameDialog.showAndWait();
+    if (!name.isPresent() || name.get().trim().isEmpty()) return null;
+
+    TextInputDialog durationDialog = new TextInputDialog("1:00");
+    durationDialog.initOwner(stage);
+    durationDialog.setTitle("Start Meeting");
+    durationDialog.setHeaderText("Enter the meeting duration as hours:minutes.");
+    durationDialog.setContentText("Duration:");
+    Optional<String> duration = durationDialog.showAndWait();
+    if (!duration.isPresent()) return null;
+    return new String[] {name.get().trim(), duration.get().trim()};
   }
 
   public long[] getMeetingExtension() {
