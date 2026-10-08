@@ -18,7 +18,7 @@ public class Constants {
   public static final int kEmailColumn = 3;
 
   // camera feed size
-  public static final int kCameraHeight = 300;
+  public static final int kCameraHeight = 250;
 
   // window constants
   public static final boolean kWindowResizable = true;
@@ -52,7 +52,7 @@ public class Constants {
           + LocalDbActivity.kIdLengthFallback
           + " digit ID number.";
   public static final int kMainStageWidth = 608;
-  public static final int kMainStageHeight = 680;
+  public static final int kMainStageHeight = 720;
   public static final String kApplicationName = "GrizzlyTime JavaFX Edition";
 
   // credits ui constants
