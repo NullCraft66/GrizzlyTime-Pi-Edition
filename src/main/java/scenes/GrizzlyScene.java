@@ -201,6 +201,12 @@ public class GrizzlyScene {
       return;
     }
 
+    MeetingActivity meeting = MeetingActivity.getActiveInstance();
+    if (meeting != null && !meeting.isActiveNow()) {
+      setMessageBoxText("No active meeting. An administrator must enter 0000000 to start one.");
+      return;
+    }
+
     // confirm the ID is vslid
     if (!userActivity.isValidID(studentIDBox.getText())) {
       setMessageBoxText("ID " + studentIDBox.getText() + " is invalid.");

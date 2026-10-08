@@ -76,6 +76,30 @@ public class MeetingActivity {
     scheduler.scheduleWithFixedDelay(this::checkMeeting, 0, 30, TimeUnit.SECONDS);
   }
 
+  public boolean isActiveNow() {
+    try {
+      List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
+      if (rows == null) return false;
+      LocalDateTime now = LocalDateTime.now();
+      for (int i = 1; i < rows.size(); i++) {
+        List<Object> row = rows.get(i);
+        if (row.size() < 5) continue;
+        LocalDate date = parseDate(value(row, 2));
+        LocalTime start = LocalTime.parse(value(row, 3), TIME);
+        LocalTime end = LocalTime.parse(value(row, 4), TIME);
+        if (row.size() > 6 && !value(row, 6).isEmpty()) {
+          end = LocalTime.parse(value(row, 6), TIME);
+        }
+        if ("ACTIVE".equalsIgnoreCase(row.size() > 5 ? value(row, 5) : "")
+            && !now.isBefore(LocalDateTime.of(date, start))
+            && now.isBefore(LocalDateTime.of(date, end))) return true;
+      }
+    } catch (Exception e) {
+      LoggingUtils.log(Level.WARNING, e);
+    }
+    return false;
+  }
+
   private void checkMeeting() {
     try {
       List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
@@ -88,7 +112,7 @@ public class MeetingActivity {
       for (int i = 1; i < rows.size(); i++) {
         List<Object> row = rows.get(i);
         if (row.size() < 5) continue;
-        LocalDate date = LocalDate.parse(value(row, 2), DATE);
+        LocalDate date = parseDate(value(row, 2));
         LocalTime start = LocalTime.parse(value(row, 3), TIME);
         LocalTime end = LocalTime.parse(value(row, 4), TIME);
         LocalDateTime endDateTime = LocalDateTime.of(date, end);
@@ -127,6 +151,11 @@ public class MeetingActivity {
 
   private String value(List<Object> row, int index) {
     return row.get(index).toString().trim();
+  }
+
+  private LocalDate parseDate(String text) {
+    String[] parts = text.trim().split("-");
+    return LocalDate.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
   }
 
   private void updateMeetingRow(String status, LocalTime endTime) {
