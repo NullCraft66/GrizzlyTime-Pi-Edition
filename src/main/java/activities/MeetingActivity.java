@@ -30,6 +30,7 @@ public class MeetingActivity {
   private final UserActivity users = new UserActivity();
   private String endedMeetingKey;
   private LocalDateTime extendedEndTime;
+  private Integer activeMeetingRow;
 
   public MeetingActivity() {
     activeInstance = this;
@@ -55,22 +56,54 @@ public class MeetingActivity {
   public synchronized void startMeeting(String name, long hours, long minutes) {
     try {
       List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
-      int row = rows == null ? 2 : rows.size() + 1;
       LocalDateTime start = LocalDateTime.now();
-      LocalDateTime end = start.plus(Duration.ofHours(hours).plusMinutes(minutes));
-      database.updateSpreadSheet(row, 1, String.valueOf(row - 1), Constants.kMeetingsSheet);
-      database.updateSpreadSheet(row, 2, name, Constants.kMeetingsSheet);
-      database.updateSpreadSheet(row, 3, start.toLocalDate().toString(), Constants.kMeetingsSheet);
-      database.updateSpreadSheet(row, 4, start.toLocalTime().withSecond(0).withNano(0).toString(), Constants.kMeetingsSheet);
-      database.updateSpreadSheet(row, 5, end.toLocalTime().withSecond(0).withNano(0).toString(), Constants.kMeetingsSheet);
+      int row = findUpcomingMeetingRow(rows, name, start);
+
+      if (row > 0) {
+        // Start the preset early, preserving its programmed end time.
+        database.updateSpreadSheet(row, 3, start.toLocalDate().toString(), Constants.kMeetingsSheet);
+        database.updateSpreadSheet(row, 4, start.toLocalTime().withSecond(0).withNano(0).toString(), Constants.kMeetingsSheet);
+      } else {
+        row = rows == null ? 2 : rows.size() + 1;
+        LocalDateTime end = start.plus(Duration.ofHours(hours).plusMinutes(minutes));
+        database.updateSpreadSheet(row, 1, String.valueOf(row - 1), Constants.kMeetingsSheet);
+        database.updateSpreadSheet(row, 2, name, Constants.kMeetingsSheet);
+        database.updateSpreadSheet(row, 3, start.toLocalDate().toString(), Constants.kMeetingsSheet);
+        database.updateSpreadSheet(row, 4, start.toLocalTime().withSecond(0).withNano(0).toString(), Constants.kMeetingsSheet);
+        database.updateSpreadSheet(row, 5, end.toLocalTime().withSecond(0).withNano(0).toString(), Constants.kMeetingsSheet);
+        extendedEndTime = end;
+      }
       database.updateSpreadSheet(row, 6, "ACTIVE", Constants.kMeetingsSheet);
-      extendedEndTime = end;
+      activeMeetingRow = row;
       endedMeetingKey = null;
       GrizzlyScene.setMessageBoxText("Meeting started: " + name);
     } catch (Exception e) {
       LoggingUtils.log(Level.WARNING, e);
       GrizzlyScene.setMessageBoxText("Unable to start meeting. Check Google Sheets access.");
     }
+  }
+
+  private int findUpcomingMeetingRow(List<List<Object>> rows, String name, LocalDateTime now) {
+    if (rows == null) return -1;
+    LocalDateTime nextStart = null;
+    int nextRow = -1;
+
+    for (int i = 1; i < rows.size(); i++) {
+      List<Object> row = rows.get(i);
+      if (row.size() < 6 || !name.equalsIgnoreCase(value(row, 1))) continue;
+      String status = value(row, 5);
+      if ("ENDED".equalsIgnoreCase(status) || "PROCESSED".equalsIgnoreCase(status)) continue;
+      try {
+        LocalDateTime start = LocalDateTime.of(parseDate(value(row, 2)), LocalTime.parse(value(row, 3), TIME));
+        if (start.isAfter(now) && (nextStart == null || start.isBefore(nextStart))) {
+          nextStart = start;
+          nextRow = i + 1;
+        }
+      } catch (Exception e) {
+        LoggingUtils.log(Level.FINE, "Skipping invalid scheduled meeting row", e);
+      }
+    }
+    return nextRow;
   }
 
   public void start() {
@@ -142,6 +175,7 @@ public class MeetingActivity {
             && !now.isBefore(LocalDateTime.of(date, start))
             && now.isBefore(endDateTime)) {
           active = true;
+          activeMeetingRow = i + 1;
           GrizzlyScene.setMeetingStatus("Active meeting: " + value(row, 1));
           return;
         }
@@ -192,6 +226,12 @@ public class MeetingActivity {
     try {
       List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
       if (rows == null) return;
+      if (activeMeetingRow != null && activeMeetingRow > 1 && activeMeetingRow <= rows.size()) {
+        database.updateSpreadSheet(activeMeetingRow, 6, status, Constants.kMeetingsSheet);
+        database.updateSpreadSheet(activeMeetingRow, 7, endTime.toString(), Constants.kMeetingsSheet);
+        activeMeetingRow = null;
+        return;
+      }
       for (int i = 1; i < rows.size(); i++) {
         List<Object> row = rows.get(i);
         if (row.size() >= 3 && LocalDate.now().toString().equals(value(row, 2))) {
