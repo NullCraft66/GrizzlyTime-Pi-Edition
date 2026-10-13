@@ -20,6 +20,7 @@ public class MeetingActivity {
   private static MeetingActivity activeInstance;
   private static final DateTimeFormatter DATE = DateTimeFormatter.ISO_LOCAL_DATE;
   private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("H:mm");
+  private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("h:mm a");
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
     Thread thread = new Thread(r, "meeting-scheduler");
     thread.setDaemon(true);
@@ -145,10 +146,37 @@ public class MeetingActivity {
           return;
         }
       }
-      if (!active) GrizzlyScene.setMeetingStatus("No active meeting");
+      if (!active) GrizzlyScene.setMeetingStatus(getUpcomingMeetingStatus(rows, now));
     } catch (Exception e) {
       LoggingUtils.log(Level.WARNING, e);
     }
+  }
+
+  private String getUpcomingMeetingStatus(List<List<Object>> rows, LocalDateTime now) {
+    LocalDateTime nextStart = null;
+    String nextName = null;
+
+    for (int i = 1; i < rows.size(); i++) {
+      List<Object> row = rows.get(i);
+      if (row.size() < 5) continue;
+
+      try {
+        String status = row.size() > 5 ? value(row, 5) : "";
+        if ("ENDED".equalsIgnoreCase(status) || "PROCESSED".equalsIgnoreCase(status)) continue;
+
+        LocalDateTime start =
+            LocalDateTime.of(parseDate(value(row, 2)), LocalTime.parse(value(row, 3), TIME));
+        if (start.isAfter(now) && (nextStart == null || start.isBefore(nextStart))) {
+          nextStart = start;
+          nextName = value(row, 1);
+        }
+      } catch (Exception e) {
+        LoggingUtils.log(Level.FINE, "Skipping invalid meeting row", e);
+      }
+    }
+
+    if (nextStart == null) return "No active meeting";
+    return "Upcoming meeting: " + nextName + " at " + nextStart.toLocalTime().format(DISPLAY_TIME);
   }
 
   private String value(List<Object> row, int index) {
