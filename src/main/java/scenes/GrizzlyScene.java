@@ -249,7 +249,11 @@ public class GrizzlyScene {
   private void handleMeetingControls() {
     String action = alertUtils.getMeetingAdminAction();
     MeetingActivity meeting = MeetingActivity.getActiveInstance();
-    if (meeting == null || action == null) return;
+    if (meeting == null || action == null) {
+      setMessageBoxText("");
+      studentIDBox.clear();
+      return;
+    }
     if (action.equals("START")) {
       String[] meetingInfo = alertUtils.getNewMeeting();
       if (meetingInfo != null) {
