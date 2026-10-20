@@ -92,7 +92,10 @@ public class UpdateNotifier {
   private void startAutomaticUpdate() {
     try {
       File projectDir = new File(CommonUtils.getCurrentDir());
-      new ProcessBuilder("bash", "-lc", "nohup ./scripts/update.sh > logs/update.log 2>&1 &")
+      new ProcessBuilder(
+              "bash",
+              "-lc",
+              "mkdir -p logs && nohup bash ./scripts/update.sh > logs/update.log 2>&1 &")
           .directory(projectDir)
           .start();
       LoggingUtils.log(Level.INFO, "Automatic update started");
