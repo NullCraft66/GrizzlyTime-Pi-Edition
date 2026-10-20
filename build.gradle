@@ -6,7 +6,7 @@ plugins {
     id 'java'
     id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'application'
-    id "org.openjfx.javafxplugin" version "0.0.10" apply false
+    id "org.openjfx.javafxplugin" version "0.1.0" apply false
     id 'com.diffplug.spotless' version '6.1.0'
 }
 
@@ -46,6 +46,7 @@ dependencies {
 if (javaVer >= 11) {
     javafx {
         version = javaVer >= 21 ? '21.0.2' : (javaVer == 17 ? '18-ea+9' : '11.0.1')
+        platform = System.getProperty('os.arch') == 'aarch64' ? 'linux-aarch64' : 'linux'
         modules = [
             'javafx.controls',
             'javafx.media',
