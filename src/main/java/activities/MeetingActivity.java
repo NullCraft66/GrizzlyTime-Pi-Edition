@@ -94,7 +94,7 @@ public class MeetingActivity {
       String status = value(row, 5);
       if ("ENDED".equalsIgnoreCase(status) || "PROCESSED".equalsIgnoreCase(status)) continue;
       try {
-        LocalDateTime start = LocalDateTime.of(parseDate(value(row, 2)), LocalTime.parse(value(row, 3), TIME));
+        LocalDateTime start = LocalDateTime.of(parseDate(value(row, 2)), parseTime(value(row, 3)));
         if (start.isAfter(now) && (nextStart == null || start.isBefore(nextStart))) {
           nextStart = start;
           nextRow = i + 1;
@@ -128,12 +128,12 @@ public class MeetingActivity {
         List<Object> row = rows.get(i);
         if (row.size() < 5) continue;
         LocalDate date = parseDate(value(row, 2));
-        LocalTime start = LocalTime.parse(value(row, 3), TIME);
-        LocalTime end = LocalTime.parse(value(row, 4), TIME);
+        LocalTime start = parseTime(value(row, 3));
+        LocalTime end = parseTime(value(row, 4));
         if (row.size() > 6 && !value(row, 6).isEmpty()) {
-          end = LocalTime.parse(value(row, 6), TIME);
+          end = parseTime(value(row, 6));
         }
-        if ("ACTIVE".equalsIgnoreCase(row.size() > 5 ? value(row, 5) : "")
+        if (isScheduledStatus(row.size() > 5 ? value(row, 5) : "")
             && !now.isBefore(LocalDateTime.of(date, start))
             && now.isBefore(LocalDateTime.of(date, end))) return true;
       }
@@ -156,12 +156,12 @@ public class MeetingActivity {
         List<Object> row = rows.get(i);
         if (row.size() < 5) continue;
         LocalDate date = parseDate(value(row, 2));
-        LocalTime start = LocalTime.parse(value(row, 3), TIME);
-        LocalTime end = LocalTime.parse(value(row, 4), TIME);
+        LocalTime start = parseTime(value(row, 3));
+        LocalTime end = parseTime(value(row, 4));
         LocalDateTime endDateTime = LocalDateTime.of(date, end);
         String status = row.size() > 5 ? value(row, 5) : "";
         if (row.size() > 6 && !value(row, 6).isEmpty()) {
-          endDateTime = LocalDateTime.of(date, LocalTime.parse(value(row, 6), TIME));
+          endDateTime = LocalDateTime.of(date, parseTime(value(row, 6)));
         }
         if (extendedEndTime != null && date.equals(now.toLocalDate())) {
           endDateTime = extendedEndTime;
@@ -180,7 +180,7 @@ public class MeetingActivity {
           GrizzlyScene.setMessageBoxText("Meeting ended. Everyone has been logged out.");
           return;
         }
-        if ("ACTIVE".equalsIgnoreCase(status)
+        if (isScheduledStatus(status)
             && !now.isBefore(LocalDateTime.of(date, start))
             && now.isBefore(endDateTime)) {
           active = true;
@@ -208,7 +208,7 @@ public class MeetingActivity {
         if ("ENDED".equalsIgnoreCase(status) || "PROCESSED".equalsIgnoreCase(status)) continue;
 
         LocalDateTime start =
-            LocalDateTime.of(parseDate(value(row, 2)), LocalTime.parse(value(row, 3), TIME));
+            LocalDateTime.of(parseDate(value(row, 2)), parseTime(value(row, 3)));
         if (start.isAfter(now) && (nextStart == null || start.isBefore(nextStart))) {
           nextStart = start;
           nextName = value(row, 1);
@@ -224,6 +224,18 @@ public class MeetingActivity {
 
   private String value(List<Object> row, int index) {
     return row.get(index).toString().trim();
+  }
+
+  private boolean isScheduledStatus(String status) {
+    return status == null || status.isEmpty() || "ACTIVE".equalsIgnoreCase(status);
+  }
+
+  private LocalTime parseTime(String text) {
+    try {
+      return LocalTime.parse(text, TIME);
+    } catch (Exception e) {
+      return LocalTime.parse(text, DateTimeFormatter.ISO_LOCAL_TIME);
+    }
   }
 
   private LocalDate parseDate(String text) {
