@@ -22,6 +22,13 @@ public class KeyActivity {
               isFullscreen = true;
             }
           }
+          if (event.getCode() == KeyCode.M
+              && event.isControlDown()
+              && event.isShiftDown()) {
+            MeetingActivity meeting = MeetingActivity.getActiveInstance();
+            if (meeting != null) meeting.refreshNow();
+            event.consume();
+          }
         });
   }
 }

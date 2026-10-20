@@ -110,6 +110,10 @@ public class MeetingActivity {
     scheduler.scheduleWithFixedDelay(this::checkMeeting, 0, 30, TimeUnit.SECONDS);
   }
 
+  public void refreshNow() {
+    scheduler.execute(this::checkMeeting);
+  }
+
   public boolean isActiveNow() {
     try {
       List<List<Object>> rows = database.returnWorksheetData(Constants.kMeetingsSheet);
