@@ -9,6 +9,12 @@ import java.io.*;
 import java.net.URL;
 import java.util.Scanner;
 import java.util.logging.Level;
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.VBox;
 
 /** @author Dalton Smith UpdateNotifier Displays popup if version is outdated */
 public class UpdateNotifier {
@@ -92,14 +98,59 @@ public class UpdateNotifier {
   private void startAutomaticUpdate() {
     try {
       File projectDir = new File(CommonUtils.getCurrentDir());
-      new ProcessBuilder(
-              "bash",
-              "-lc",
-              "mkdir -p logs && nohup bash ./scripts/update.sh > logs/update.log 2>&1 &")
-          .directory(projectDir)
-          .start();
+      Dialog<Void> progressDialog = new Dialog<>();
+      progressDialog.setTitle("Updating GrizzlyTime");
+      progressDialog.setHeaderText("Downloading and installing the update...");
+      Label status = new Label("Starting update...");
+      TextArea output = new TextArea();
+      output.setEditable(false);
+      output.setWrapText(false);
+      output.setPrefRowCount(16);
+      output.setPrefColumnCount(70);
+      VBox content = new VBox(8, status, output);
+      content.setPadding(new Insets(10));
+      progressDialog.getDialogPane().setContent(content);
+      progressDialog.getDialogPane().getStylesheets().add(Constants.kRootStylesheet);
+      progressDialog.getDialogPane().getButtonTypes().clear();
+      progressDialog.show();
+
+      Process updater =
+          new ProcessBuilder("bash", "./scripts/update.sh")
+              .directory(projectDir)
+              .redirectErrorStream(true)
+              .start();
       LoggingUtils.log(Level.INFO, "Automatic update started");
-      CommonUtils.exitApplication();
+
+      Thread outputReader =
+          new Thread(
+              () -> {
+                try (BufferedReader reader = updater.inputReader()) {
+                  String line;
+                  while ((line = reader.readLine()) != null) {
+                    String updateLine = line;
+                    Platform.runLater(
+                        () -> {
+                          output.appendText(updateLine + System.lineSeparator());
+                          status.setText(updateLine);
+                        });
+                  }
+                  int exitCode = updater.waitFor();
+                  Platform.runLater(
+                      () -> {
+                        status.setText(
+                            exitCode == 0
+                                ? "Update complete. GrizzlyTime is restarting."
+                                : "Update failed. See the output above.");
+                        if (exitCode == 0) progressDialog.setResult(null);
+                      });
+                } catch (Exception e) {
+                  LoggingUtils.log(Level.SEVERE, "Automatic update failed", e);
+                  Platform.runLater(() -> status.setText("Update failed. See the log output."));
+                }
+              },
+              "update-output-reader");
+      outputReader.setDaemon(true);
+      outputReader.start();
     } catch (IOException e) {
       LoggingUtils.log(Level.SEVERE, "Unable to start automatic update", e);
       CommonUtils.application.getHostServices().showDocument(Constants.kReleaseUrl);
