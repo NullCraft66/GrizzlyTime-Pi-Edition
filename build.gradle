@@ -15,7 +15,12 @@ version '3.0.6'
 mainClassName = "Main"
 
 def javaVer = getVersion()
-def javafxVer = System.getProperty('os.arch') == 'aarch64' ? '17' : (javaVer >= 21 ? '21.0.2' : (javaVer == 17 ? '18-ea+9' : '11.0.1'))
+def osName = System.getProperty('os.name').toLowerCase()
+def isWindows = osName.contains('win')
+def isMac = osName.contains('mac')
+def isArm64 = System.getProperty('os.arch') == 'aarch64'
+def javafxVer = isArm64 ? '17' : (javaVer >= 21 ? '21.0.2' : (javaVer == 17 ? '18-ea+9' : '11.0.1'))
+def javafxPlatform = isWindows ? 'win' : (isMac ? 'mac' : (isArm64 ? 'linux-aarch64' : 'linux'))
 
 if (javaVer >= 11) {
     apply plugin: "org.openjfx.javafxplugin"
@@ -41,7 +46,7 @@ dependencies {
 if (javaVer >= 11) {
     javafx {
         version = javafxVer
-        platform = System.getProperty('os.arch') == 'aarch64' ? 'linux-aarch64' : 'linux'
+        platform = javafxPlatform
         modules = [
             'javafx.controls',
             'javafx.media',
