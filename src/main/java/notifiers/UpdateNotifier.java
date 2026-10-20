@@ -144,7 +144,7 @@ public class UpdateNotifier {
                         if (exitCode == 0) progressDialog.setResult(null);
                       });
                 } catch (Exception e) {
-                  LoggingUtils.log(Level.SEVERE, "Automatic update failed", e);
+                  LoggingUtils.log(Level.SEVERE, e);
                   Platform.runLater(() -> status.setText("Update failed. See the log output."));
                 }
               },
@@ -152,7 +152,7 @@ public class UpdateNotifier {
       outputReader.setDaemon(true);
       outputReader.start();
     } catch (IOException e) {
-      LoggingUtils.log(Level.SEVERE, "Unable to start automatic update", e);
+      LoggingUtils.log(Level.SEVERE, e);
       CommonUtils.application.getHostServices().showDocument(Constants.kReleaseUrl);
     }
   }

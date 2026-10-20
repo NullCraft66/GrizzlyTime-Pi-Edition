@@ -100,7 +100,7 @@ public class MeetingActivity {
           nextRow = i + 1;
         }
       } catch (Exception e) {
-        LoggingUtils.log(Level.FINE, "Skipping invalid scheduled meeting row", e);
+        LoggingUtils.log(Level.FINE, "Skipping invalid scheduled meeting row: " + e.getMessage());
       }
     }
     return nextRow;
@@ -214,7 +214,7 @@ public class MeetingActivity {
           nextName = value(row, 1);
         }
       } catch (Exception e) {
-        LoggingUtils.log(Level.FINE, "Skipping invalid meeting row", e);
+        LoggingUtils.log(Level.FINE, "Skipping invalid meeting row: " + e.getMessage());
       }
     }
 
