@@ -111,7 +111,12 @@ public class MeetingActivity {
   }
 
   public void refreshNow() {
-    scheduler.execute(this::checkMeeting);
+    GrizzlyScene.setMessageBoxText("Refreshing meeting schedule...");
+    scheduler.execute(
+        () -> {
+          checkMeeting();
+          GrizzlyScene.setMessageBoxText("Meeting schedule refreshed.");
+        });
   }
 
   public boolean isActiveNow() {
