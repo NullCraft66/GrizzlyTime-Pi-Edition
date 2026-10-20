@@ -16,7 +16,7 @@ public class LocalDbActivity {
   public static boolean kHandsFreeMode = false;
   public static boolean kUpdateNotifier = true;
   public static int kIdLength = 6;
-  public static int kIdLengthFallback = 7;
+  public static int kIdLengthFallback = 9;
   public static String kApplicationName = "GrizzlyTime_JavaFX_Edition";
   public static boolean kGrizzlyVerification = false;
 
