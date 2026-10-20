@@ -5,7 +5,6 @@ import helpers.AlertUtils;
 import helpers.CommonUtils;
 import helpers.Constants;
 import helpers.LoggingUtils;
-import java.awt.*;
 import java.io.*;
 import java.net.URL;
 import java.util.Scanner;
@@ -14,14 +13,15 @@ import java.util.logging.Level;
 /** @author Dalton Smith UpdateNotifier Displays popup if version is outdated */
 public class UpdateNotifier {
 
+  private static final String UPDATE_VERSION_FILE = ".update-version";
   private AlertUtils alertUtils = new AlertUtils();
 
   private void downloadVersion() throws IOException {
 
-    File file = new File("version.txt");
+    File file = new File(CommonUtils.getCurrentDir(), UPDATE_VERSION_FILE);
 
     if (file.exists()) {
-      LoggingUtils.log(Level.WARNING, "version.txt already exists");
+      LoggingUtils.log(Level.WARNING, UPDATE_VERSION_FILE + " already exists");
 
       if (file.delete()) {
         LoggingUtils.log(Level.INFO, "Delete was successful");
@@ -32,8 +32,7 @@ public class UpdateNotifier {
 
     BufferedInputStream inputStream =
         new BufferedInputStream(new URL(Constants.kUpdateUrl).openStream());
-    FileOutputStream fileOS =
-        new FileOutputStream(CommonUtils.getCurrentDir() + File.separator + "version.txt");
+    FileOutputStream fileOS = new FileOutputStream(file);
 
     byte[] data = new byte[1024];
     int byteContent;
@@ -58,7 +57,7 @@ public class UpdateNotifier {
 
     Scanner scanner;
     try {
-      scanner = new Scanner(new File("version.txt"));
+      scanner = new Scanner(new File(CommonUtils.getCurrentDir(), UPDATE_VERSION_FILE));
 
     } catch (FileNotFoundException e) {
       LoggingUtils.log(Level.SEVERE, e);
@@ -85,8 +84,22 @@ public class UpdateNotifier {
               "Version " + version + " is available!\n" + Constants.kReleaseUrl);
 
       if (confirm) {
-        CommonUtils.application.getHostServices().showDocument(Constants.kReleaseUrl);
+        startAutomaticUpdate();
       }
+    }
+  }
+
+  private void startAutomaticUpdate() {
+    try {
+      File projectDir = new File(CommonUtils.getCurrentDir());
+      new ProcessBuilder("bash", "-lc", "nohup ./scripts/update.sh > logs/update.log 2>&1 &")
+          .directory(projectDir)
+          .start();
+      LoggingUtils.log(Level.INFO, "Automatic update started");
+      CommonUtils.exitApplication();
+    } catch (IOException e) {
+      LoggingUtils.log(Level.SEVERE, "Unable to start automatic update", e);
+      CommonUtils.application.getHostServices().showDocument(Constants.kReleaseUrl);
     }
   }
 }

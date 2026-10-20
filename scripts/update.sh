@@ -22,7 +22,7 @@ if ! git diff --quiet || [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 git merge --ff-only origin/main
-./gradlew clean build
+./gradlew clean build -x spotlessJava
 
 echo "Update complete at $(git rev-parse --short HEAD)."
 echo "Stopping any running GrizzlyTime process..."
