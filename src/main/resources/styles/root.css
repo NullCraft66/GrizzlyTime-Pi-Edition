@@ -27,9 +27,13 @@ Main Screen CSS
 }
 
 #messageText {
-    -fx-font-size: 18px;
+    -fx-font-size: 14px;
     -fx-text-alignment: center;
     -fx-text-fill: #b00805;
+}
+
+#meetingStatus {
+    -fx-font-size: 14px;
 }
 
 #textBox {
@@ -147,6 +151,27 @@ Custom Dialog CSS
 
 .myDialog{
     -fx-background-color: #D0BB61;
+}
+.myDialog.dialog-pane,
+.myDialog .dialog-pane {
+    -fx-background-color: #D0BB61;
+}
+.myDialog .header-panel {
+    -fx-background-color: #d9c575;
+}
+.myDialog .content {
+    -fx-background-color: #D0BB61;
+}
+.myDialog .button-bar,
+.myDialog .button-bar .container {
+    -fx-background-color: #D0BB61;
+}
+.myDialog .button {
+    -fx-background-color: lightgrey;
+    -fx-text-fill: #292929;
+}
+.myDialog .button:hover {
+    -fx-background-color: #acacac;
 }
 .myDialog > *.button-bar > *.container{
     -fx-background-color: #D0BB61;

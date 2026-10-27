@@ -5,6 +5,7 @@ import javafx.geometry.HPos;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -37,6 +38,8 @@ public class CreditsScene {
   private Text summaryText = new Text(Constants.kCreditsSummary);
 
   private Text credits = new Text(Constants.kCreditsList);
+  private Hyperlink originalProjectLink = new Hyperlink("Original GrizzlyTime project");
+  private Hyperlink forkProjectLink = new Hyperlink("Ephraim Kisia's Raspberry Pi edition");
 
   public void showCredits(GridPane root) {
     root.setId("creditsRoot");
@@ -107,9 +110,21 @@ public class CreditsScene {
     bottomPaneMain.setId("creditsMain");
     GridPane.setHalignment(bottomPaneMain, HPos.CENTER);
     bottomPaneMain.add(credits, 0, 0);
+    bottomPaneMain.add(originalProjectLink, 0, 1);
+    bottomPaneMain.add(forkProjectLink, 0, 2);
   }
 
   private void linkHandlers() {
+    originalProjectLink.setOnAction(
+        event ->
+            helpers.CommonUtils.application
+                .getHostServices()
+                .showDocument("https://github.com/YCSRobotics/GrizzlyTime"));
+    forkProjectLink.setOnAction(
+        event ->
+            helpers.CommonUtils.application
+                .getHostServices()
+                .showDocument("https://github.com/NullCraft66/GrizzlyTime-Pi-Edition"));
     backButton.setOnAction(
         event -> {
           SceneManager.updateScene(Constants.kMainSceneState);

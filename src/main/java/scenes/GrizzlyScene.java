@@ -35,6 +35,7 @@ public class GrizzlyScene {
   // object that should be able to be modified by calling
   // this scene directly
   private static Label messageText = new Label("");
+
   private static Label meetingStatusText = new Label("No active meeting");
 
   private static TextField studentIDBox = new TextField();

@@ -6,9 +6,9 @@ import exceptions.CancelledUserCreationException;
 import helpers.AlertUtils;
 import helpers.Constants;
 import helpers.LoggingUtils;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -62,14 +62,17 @@ public class UserActivity {
   /** Returns the registered user's display name, or null when the ID is not registered. */
   public String getUserDisplayName(String userID) throws Exception {
     dbUtils.getUpdatedData();
-    int userRow = dbUtils.getCellRowFromColumn(userID, Constants.kStudentIdColumn, Constants.kMainSheet);
+    int userRow =
+        dbUtils.getCellRowFromColumn(userID, Constants.kStudentIdColumn, Constants.kMainSheet);
     if (userRow < 0) {
       return null;
     }
 
-    String firstName = dbUtils.getCellData(userRow, Constants.kFirstNameColumn, Constants.kMainSheet);
+    String firstName =
+        dbUtils.getCellData(userRow, Constants.kFirstNameColumn, Constants.kMainSheet);
     String lastName = dbUtils.getCellData(userRow, Constants.kLastNameColumn, Constants.kMainSheet);
-    return (firstName == null ? "" : firstName.trim()) + " "
+    return (firstName == null ? "" : firstName.trim())
+        + " "
         + (lastName == null ? "" : lastName.trim());
   }
 
@@ -77,7 +80,8 @@ public class UserActivity {
     dbUtils.getUpdatedData();
     String search = identity.trim().toLowerCase();
     ArrayList<String> ids = dbUtils.getColumnData(Constants.kStudentIdColumn, Constants.kMainSheet);
-    ArrayList<String> first = dbUtils.getColumnData(Constants.kFirstNameColumn, Constants.kMainSheet);
+    ArrayList<String> first =
+        dbUtils.getColumnData(Constants.kFirstNameColumn, Constants.kMainSheet);
     ArrayList<String> last = dbUtils.getColumnData(Constants.kLastNameColumn, Constants.kMainSheet);
     ArrayList<String> emails = dbUtils.getColumnData(Constants.kEmailColumn, Constants.kMainSheet);
     String match = null;
@@ -228,13 +232,14 @@ public class UserActivity {
         long diffSeconds = totalSeconds % 60;
         String totalTimeFromDifference =
             String.format("%02d:%02d:%02d", diffHours, diffMinutes, diffSeconds);
-        LocalTime totalHoursTime = LocalTime.of((int) (diffHours % 24), (int) diffMinutes, (int) diffSeconds);
-        logoutActivity.logoutUserWithHours(userID, userRow, totalHoursTime, totalTimeFromDifference);
+        LocalTime totalHoursTime =
+            LocalTime.of((int) (diffHours % 24), (int) diffMinutes, (int) diffSeconds);
+        logoutActivity.logoutUserWithHours(
+            userID, userRow, totalHoursTime, totalTimeFromDifference);
       }
 
       // logout the user
       dbUtils.setCellData(userRow, Constants.kLoggedInColumn, "FALSE", Constants.kMainSheet);
-
     }
   }
 

@@ -22,6 +22,29 @@ See [CHANGELOG.md](CHANGELOG.md) for the full change history.
 - Google account and Google Sheets API credentials
 - Monitor, keyboard, and mouse for initial setup
 
+## Customize for another team
+
+1. Download or clone this repository.
+2. Copy `config.template.json` to `config.json`.
+3. Create a copy of `templates/GrizzlyTime-v3-template.xlsx` in Google Sheets and copy its
+   spreadsheet ID into `config.json`.
+4. Place that team's Google credentials at
+   `src/main/resources/credentials/credentials.json`.
+5. Change `applicationName` and ID settings in `config.json`.
+6. Replace the logo files in the local `images` folder and customize colors in
+   `src/main/resources/styles/root.css`.
+7. Run `./gradlew clean build` and `./gradlew run`.
+
+The repository does not include a team's spreadsheet ID, Google credentials, tokens, or attendance
+records. Each team should keep those values local and out of GitHub.
+
+## Customize for another team
+
+This repository can be used as a GitHub template. Follow [CUSTOMIZATION.md](CUSTOMIZATION.md)
+to create a team spreadsheet, configure the application, replace branding, and deploy to a Pi.
+Start with [config.example.json](config.example.json) and copy it to `config.json` before running
+the application.
+
 This is not a headless service. A graphical desktop session is required because the application uses JavaFX.
 
 ## Install on Raspberry Pi

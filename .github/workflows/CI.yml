@@ -31,17 +31,17 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.jvm }}
       - name: Fix permissions
-        if: ${{ matrix.os }} == "ubuntu" || ${{ matrix.os }} == "macos"
+        if: ${{ matrix.os == 'ubuntu' || matrix.os == 'macos' }}
         run: |
           chmod +x ./gradlew
-      - name: Build ShadowJar
-        run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            ./gradlew.bat shadowJar
-          else
-            ./gradlew shadowJar
-          fi
+      - name: Build ShadowJar on Unix
+        if: ${{ matrix.os != 'windows' }}
+        run: ./gradlew shadowJar
         shell: bash
+      - name: Build ShadowJar on Windows
+        if: ${{ matrix.os == 'windows' }}
+        run: gradlew.bat shadowJar
+        shell: cmd
       - name: Publish ShadowJar
         uses: actions/upload-artifact@v4
         with:

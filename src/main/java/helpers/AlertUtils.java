@@ -97,9 +97,19 @@ public class AlertUtils {
 
   public String getMeetingAdminAction() {
     Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+    ImageView icon = new ImageView(new Image(Constants.kApplicationIcon));
+    icon.setFitWidth(40);
+    icon.setFitHeight(40);
+    icon.setPreserveRatio(true);
+    alert.setGraphic(icon);
     alert.initOwner(stage);
     alert.getDialogPane().getStylesheets().add(Constants.kRootStylesheet);
     alert.getDialogPane().getStyleClass().add("myDialog");
+    ImageView dialogIcon = new ImageView(new Image(Constants.kApplicationIcon));
+    dialogIcon.setFitWidth(40);
+    dialogIcon.setFitHeight(40);
+    dialogIcon.setPreserveRatio(true);
+    alert.setGraphic(dialogIcon);
     alert.setTitle("Meeting Controls");
     alert.setHeaderText("Choose a meeting action");
     ButtonType end = new ButtonType("End Meeting");
