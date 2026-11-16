@@ -119,6 +119,9 @@ public class GrizzlyTime extends Application {
           primaryStage.setHeight(Constants.kMainStageHeight);
           primaryStage.centerOnScreen();
           SceneManager.updateScene(Constants.kMainSceneState);
+	 // start fullscreen
+primaryStage.setFullScreen(true);
+KeyActivity.isFullscreen = true;
           LoggingUtils.log(Level.INFO, "Run third");
         });
   }
